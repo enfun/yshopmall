@@ -32,10 +32,10 @@ public class YxStoreCombinationDto implements Serializable {
     private String images;
 
     //参与人数
-    private Long countPeopleAll;
+    private Integer countPeopleAll;
 
     //成团人数
-    private Long countPeoplePink;
+    private Integer countPeoplePink;
 
     //访问人数
     private Integer countPeopleBrowse = 0;

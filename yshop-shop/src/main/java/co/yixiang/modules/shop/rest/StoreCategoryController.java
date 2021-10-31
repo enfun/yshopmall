@@ -13,11 +13,12 @@ import co.yixiang.logging.aop.log.Log;
 import co.yixiang.modules.aop.NoRepeatSubmit;
 import co.yixiang.modules.shop.domain.YxStoreCategory;
 import co.yixiang.modules.shop.domain.YxStoreProduct;
+import co.yixiang.modules.shop.service.ProductSortService;
 import co.yixiang.modules.shop.service.YxStoreCategoryService;
 import co.yixiang.modules.shop.service.YxStoreProductService;
-import co.yixiang.modules.shop.service.dto.YxStoreCategoryDto;
+import co.yixiang.modules.shop.service.dto.ProductSortDto;
+import co.yixiang.modules.shop.service.dto.ProductSortQueryCriteria;
 import co.yixiang.modules.shop.service.dto.YxStoreCategoryQueryCriteria;
-import co.yixiang.utils.OrderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cache.annotation.CacheEvict;
@@ -45,11 +46,14 @@ public class StoreCategoryController {
     private final YxStoreCategoryService yxStoreCategoryService;
     private final YxStoreProductService yxStoreProductService;
 
+    private final ProductSortService productSortService;
+
 
     public StoreCategoryController(YxStoreCategoryService yxStoreCategoryService,
-                                   YxStoreProductService yxStoreProductService) {
+                                   YxStoreProductService yxStoreProductService, ProductSortService productSortService) {
         this.yxStoreCategoryService = yxStoreCategoryService;
         this.yxStoreProductService = yxStoreProductService;
+        this.productSortService = productSortService;
     }
 
     @Log("导出数据")
@@ -61,14 +65,23 @@ public class StoreCategoryController {
     }
 
 
+//    @Log("查询商品分类")
+//    @ApiOperation(value = "查询商品分类")
+//    @GetMapping(value = "/yxStoreCategory")
+//    @PreAuthorize("hasAnyRole('admin','YXSTORECATEGORY_ALL','YXSTORECATEGORY_SELECT')")
+//    public ResponseEntity getProductSort(YxStoreCategoryQueryCriteria criteria, Pageable pageable) {
+//
+//        List<YxStoreCategoryDto> categoryDTOList = yxStoreCategoryService.queryAll(criteria);
+//        return new ResponseEntity(yxStoreCategoryService.buildTree(categoryDTOList), HttpStatus.OK);
+//    }
+
     @Log("查询商品分类")
     @ApiOperation(value = "查询商品分类")
     @GetMapping(value = "/yxStoreCategory")
     @PreAuthorize("hasAnyRole('admin','YXSTORECATEGORY_ALL','YXSTORECATEGORY_SELECT')")
-    public ResponseEntity getYxStoreCategorys(YxStoreCategoryQueryCriteria criteria, Pageable pageable) {
-
-        List<YxStoreCategoryDto> categoryDTOList = yxStoreCategoryService.queryAll(criteria);
-        return new ResponseEntity(yxStoreCategoryService.buildTree(categoryDTOList), HttpStatus.OK);
+    public ResponseEntity getProductSort(ProductSortQueryCriteria criteria, Pageable pageable) {
+        List<ProductSortDto> categoryDTOList = productSortService.queryAll(criteria);
+        return new ResponseEntity(productSortService.buildTree(categoryDTOList), HttpStatus.OK);
     }
 
     @Log("新增商品分类")
@@ -135,17 +148,18 @@ public class StoreCategoryController {
 
     /**
      * 检测删除分类
+     *
      * @param id 分类id
      */
     private void delCheck(Integer id) {
-        Long count = yxStoreCategoryService.lambdaQuery()
+        int count = yxStoreCategoryService.lambdaQuery()
                 .eq(YxStoreCategory::getPid, id)
                 .count();
         if (count > 0) {
             throw new BadRequestException("请先删除子分类");
         }
 
-        Long countP = yxStoreProductService.lambdaQuery()
+        int countP = yxStoreProductService.lambdaQuery()
                 .eq(YxStoreProduct::getCateId, id)
                 .count();
 

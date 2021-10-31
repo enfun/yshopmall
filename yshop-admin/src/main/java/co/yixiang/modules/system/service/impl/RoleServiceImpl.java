@@ -27,6 +27,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -237,7 +238,7 @@ public class RoleServiceImpl extends BaseServiceImpl<RoleMapper, Role> implement
      */
     @Override
 //    @Cacheable(key = "'loadPermissionByUser:' + #p0.username")
-    public Collection<SimpleGrantedAuthority> mapToGrantedAuthorities(UserDto user) {
+    public Collection<GrantedAuthority> mapToGrantedAuthorities(UserDto user) {
         Set<Role> roles = roleMapper.findByUsers_Id(user.getId());
         for (Role role : roles) {
             Set<Menu> menuSet = menuMapper.findMenuByRoleId(role.getId());

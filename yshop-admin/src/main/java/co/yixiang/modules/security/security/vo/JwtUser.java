@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Timestamp;
@@ -48,7 +47,7 @@ public class JwtUser implements UserDetails {
     private final String job;
 
     @JsonIgnore
-    private final Collection<SimpleGrantedAuthority> authorities;
+    private final Collection<GrantedAuthority> authorities;
 
     private final boolean enabled;
 

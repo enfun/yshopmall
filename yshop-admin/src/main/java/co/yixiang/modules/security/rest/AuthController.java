@@ -13,7 +13,7 @@ import co.yixiang.annotation.AnonymousAccess;
 import co.yixiang.exception.BadRequestException;
 import co.yixiang.logging.aop.log.Log;
 import co.yixiang.modules.security.config.SecurityProperties;
-import co.yixiang.modules.security.security.TokenUtil;
+import co.yixiang.modules.security.security.TokenProvider;
 import co.yixiang.modules.security.security.vo.AuthUser;
 import co.yixiang.modules.security.security.vo.JwtUser;
 import co.yixiang.modules.security.service.OnlineUserService;
@@ -31,7 +31,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -62,15 +61,15 @@ public class AuthController {
     private final RedisUtils redisUtils;
     private final UserDetailsService userDetailsService;
     private final OnlineUserService onlineUserService;
-    private final TokenUtil tokenUtil;
+    private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
-    public AuthController(SecurityProperties properties, RedisUtils redisUtils, UserDetailsService userDetailsService, OnlineUserService onlineUserService, TokenUtil tokenUtil, AuthenticationManagerBuilder authenticationManagerBuilder) {
+    public AuthController(SecurityProperties properties, RedisUtils redisUtils, UserDetailsService userDetailsService, OnlineUserService onlineUserService, TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder) {
         this.properties = properties;
         this.redisUtils = redisUtils;
         this.userDetailsService = userDetailsService;
         this.onlineUserService = onlineUserService;
-        this.tokenUtil = tokenUtil;
+        this.tokenProvider = tokenProvider;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
     }
 
@@ -98,8 +97,7 @@ public class AuthController {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
         // 生成令牌
-        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token = tokenUtil.generateToken(userDetails);
+        String token = tokenProvider.createToken(authentication);
         final JwtUser jwtUser = (JwtUser) authentication.getPrincipal();
         // 保存在线信息
         onlineUserService.save(jwtUser, token, request);
@@ -152,7 +150,7 @@ public class AuthController {
     @AnonymousAccess
     @DeleteMapping(value = "/logout")
     public ResponseEntity<Object> logout(HttpServletRequest request) {
-        onlineUserService.logout(tokenUtil.getToken(request));
+        onlineUserService.logout(tokenProvider.getToken(request));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
